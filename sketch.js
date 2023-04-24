@@ -1,82 +1,99 @@
-class Figura {
-   constructor(x, y, alto, ancho, vx, vy) {
-    this.posicion = createVector(x,y);
-    this.alto = alto;
-    this.ancho = ancho;
-    this.fillred = 255;
-    this.fillgreen = 87;
-    this.fillblue = 57;
-    this.velocidad = createVector(vx,vy);
-  }
-  update()
-  {
-      if (this.posicion.x + this.ancho >= 400)
-        {  
-          let valor = random(3); 
-          this.velocidad.x = this.velocidad.x * -valor;
-         this.velocidad.y = this.velocidad.y * -valor;
-        }
-      this.posicion.add(this.velocidad);
-  }
-  
-}
-
-class Rectangulo extends Figura{
-  constructor(x, y, alto, ancho, vx, vy) {
-      super(x, y, alto, ancho, vx, vy);
-  }
-  
-draw()
-  {
-fill(this.fillred,this.fillgreen,this.fillblue);
-rect(this.posicion.x,this.posicion.y,this.alto,this.ancho);
-  }
-}
-
-class Elipse extends Figura{
-  constructor(x, y, alto, ancho, vx, vy) {
-      super(x, y, alto, ancho, vx, vy);
-  }
-  
-draw()
-  {
-fill(this.fillred,this.fillgreen,this.fillblue);
-ellipse(this.posicion.x,this.posicion.y,this.alto,this.ancho);
-  }
-}
-
-var figuras = [];
+// Variables
+var charter = []; 
+var diferencial = 10;
 var dibujando = 'circulo';
 var btnCirculo = null;
 var btnRectangulo = null;
-
-
-function mouseClicked() {
-  // Se crea un objeto según la opción actual
-if (mouseY > 25)
-  {
-  if (dibujando == 'circulo')
-    figuras.push(new Elipse(mouseX,mouseY,20,20,3,1));
-  else if (dibujando == 'rectangulo')
-    figuras.push(new Rectangulo(mouseX,mouseY,20,20,2,1));
-  }
-
-  return false;
-}
+let puntuacion;
+let titulo;
+var lava;
+let x = 0;
+let y = 0;
 
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(600, 400);
+  // Titulo
+  titulo = createDiv('¡No caigas en la lava!');
+  titulo.position(20,20);
+  titulo.style('color', 'white');
   
+  puntuacion = createDiv('Puntuacion = 0');
+  puntuacion.position(20, 40);
+  puntuacion.id = 'score';
+  puntuacion.style('color', 'white');
+  // Boton
   btnCirculo = createButton('Circulo');
-  btnCirculo.position(0, 0);
+  btnCirculo.position(530, 10);
   btnCirculo.mousePressed(changeCirculo);
-  btnCirculo.style( 'background-color','#cccccc');
+  btnCirculo.style('background-color','##f0f0f0');
   
-  btnRectangulo = createButton('Rectangulo');
-  btnRectangulo.position(75, 0);
+  // Boton
+  btnRectangulo = createButton('Square');
+  btnRectangulo.position(530, 35);
   btnRectangulo.mousePressed(changeRectangulo);
+  btnRectangulo.style('background-color','#f0f0f0');
+  
+  lava = new Lava(0,300,600,200);
 }
 
+// Clase charters
+class Charters {
+  constructor(x,y,velx,vely, ancho, alto) {
+    this.posicion = createVector(x,y,velx,vely);
+    this.velocidad = createVector(velx,vely);
+    this.alto = alto;
+    this.ancho = ancho;
+    this.fillred = 265;
+    this.fillgreen = 60;
+    this.fillblue = 6;
+  }
+  caer () {
+   if (this.posicion.x + this.ancho >= 600){
+     this.velocidad.x = this.velocidad.x*-1; 
+     this.velocidad.y = this.velocidad.y *-1 + (diferencial*0.2);
+    }
+    this.posicion.add(this.velocidad);
+  }
+   subir () {
+     this.velocidad.y = this.velocidad.y - random(diferencial  * 3);
+     this.posicion.add(this.velocidad);
+     this.velocidad.y = 0;
+  } 
+  
+  colision (){
+ if (this.posicion.y >= x + 450){
+   noLoop();
+    puntuacion.html('Juego finalizado, tu puntuacion es 0');
+ } else if(this.posicion.x <= 0 ) {
+   noLoop();
+    puntuacion.html('Juego finalizado, tu puntuacion es 100');
+ }
+}  
+}
+
+// Clase CharterCircle
+class CharterCircle extends Charters {
+  constructor(x,y,velx,vely, alto, ancho) {
+    super(x,y,velx,vely, alto, ancho);
+  } 
+draw (){ 
+ellipse(this.posicion.x,this.posicion.y,this.alto,this.ancho);
+fill(this.fillred,this.fillgreen,this.fillblue);
+  } 
+}
+
+// Clase CharterSquare
+class CharterSquare extends Charters {
+  constructor(x,y,velx,vely, alto, ancho) {
+    super(x,y,velx,vely, alto, ancho);
+  }
+draw (){ 
+rect(this.posicion.x,this.posicion.y,this.alto,this.ancho);
+fill(this.fillred,this.fillgreen,this.fillblue);
+  } 
+  }
+
+/* Ambas funciones cambian el color de los botones cuando no estan disponibles.*/
 function changeCirculo()
    {
      btnCirculo.style( 'background-color','#cccccc');
@@ -90,13 +107,51 @@ function changeRectangulo()
      dibujando = 'rectangulo';
    }
 
- 
+/* La clase Lava dibuja un rectangulo que contiene el metodo llenarse, este ultimo permite que los objetos llamados por el jugador efectuen la colision contra el, asi como le pemite subir.*/
+class Lava {
+  constructor(x,y,alto,ancho){
+    this.posicion = createVector(x,y);
+    this.alto = alto;
+    this.ancho = ancho;
+    this.fillred = 265;
+    this.fillgreen = 60;
+    this.fillblue = 6;
+  }
+  draw (){
+    rect(this.posicion.x, this.posicion.y, this.alto, this.ancho);
+    fill(this.fillred, this.fillgreen, this.fillblue);
+  }
+  llenarse (){
+     lava = new Lava(0, x + 450,600,600);
+  }
+}
 
+/* Se ejecutan los metodos de charter "draw", "caer" y "colsion", asi como se dibuja la lava y se declara el incremento que tendra x para que esta suba */
 function draw() {
-  background(220);
-  figuras.forEach((fig) => 
-   {
-    fig.draw();
-    fig.update();
-   });
+ background(26,26,26); 
+ lava.draw();
+  x = x - 0.8;
+ lava.llenarse();
+ charter.forEach(function(value, index, array){
+ value.draw();
+ value.caer();
+ value.colision();
+ });
+ }
+
+/* Se agregan los objetos segun sean seleccionados en los botones de la derecha.*/
+function mouseClicked(){
+   if (dibujando == 'circulo'){
+  charter.push(new CharterCircle(2,2,4,8,20,20));
+  }
+  else if (dibujando == 'rectangulo'){ 
+  charter.push(new CharterSquare(2,2,4,8,20,20));
+  }   
+}
+
+/* Dentro de charter se aplica el metodo subir para que el objeto suba a rebotes. */
+function keyPressed(){
+charter.forEach(function(value, index, array){
+value.subir();
+});
 }
