@@ -31,7 +31,7 @@ function setup() {
   btnCirculo.style('color','#fff');
   
   // Boton
-  btnRectangulo = createButton('Square');
+  btnRectangulo = createButton('Cuadro');
   btnRectangulo.position(485, 70);
   btnRectangulo.mousePressed(changeRectangulo);
   btnRectangulo.style('background-color','#7257E0');
